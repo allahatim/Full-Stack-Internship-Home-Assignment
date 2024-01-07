@@ -61,7 +61,7 @@ const Home = () => {
           {currentItems.map((item) => (
             <tr key={item.id}>
               <td>{item.id}</td>
-              <td>{item.name}</td>
+              <td>{item.employeeName}</td>
               <td>{item.jobTitle}</td>
               <td>{item.salary}</td>
             </tr>
