@@ -44,7 +44,7 @@ public class FileServiceImpl implements FileService{
         try (BufferedReader fileReader = new BufferedReader(new FileReader(filePath))) {
             // Read the first line to check if it's a CSV file
             String firstLine = fileReader.readLine();
-            return firstLine != null && firstLine.startsWith("id,name,jobTitle,salary");
+            return firstLine != null && firstLine.startsWith("id,employee_name,job_title,salary");
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -89,8 +89,8 @@ public class FileServiceImpl implements FileService{
             for (CSVRecord csvRecord : records) {
                 Employee employee = new Employee(
                         Long.parseLong(csvRecord.get("id")),
-                        csvRecord.get("name"),
-                        csvRecord.get("jobTitle"),
+                        csvRecord.get("employee_name"),
+                        csvRecord.get("job_title"),
                         Double.parseDouble(csvRecord.get("salary")));
                 employees.add(employee);
             }
