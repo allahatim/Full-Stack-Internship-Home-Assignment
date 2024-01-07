@@ -9,7 +9,7 @@ public class Employee {
     private long id;
     private String EmployeeName;
     private String JobTitle;
-    private String Salary;
+    private Double Salary;
     public long getId() {
         return id;
     }
@@ -34,18 +34,18 @@ public class Employee {
         JobTitle = jobTitle;
     }
 
-    public String getSalary() {
+    public Double getSalary() {
         return Salary;
     }
 
-    public void setSalary(String salary) {
+    public void setSalary(Double salary) {
         Salary = salary;
     }
 
     public Employee(){
     }
 
-    public Employee(long id, String employeeName, String jobTitle, String salary) {
+    public Employee(long id, String employeeName, String jobTitle, Double salary) {
         super();
         this.id = id;
         EmployeeName = employeeName;

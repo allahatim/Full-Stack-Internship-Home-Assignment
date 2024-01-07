@@ -6,57 +6,101 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class FileServiceImpl implements FileService{
+    String filePath = "E:\\Projects\\SpringProjects\\DNAProject\\Full-Stack-Internship-Home-Assignment\\data\\employees.csv";
+
+
+    private final ResourceLoader resourceLoader;
+    public FileServiceImpl(ResourceLoader resourceLoader) {
+        this.resourceLoader = resourceLoader;
+    }
     @Autowired
     private EmployeeRepository repository;
+
     @Override
-    public boolean hasCSVformat(MultipartFile file) {
-        String type = "text/csv";
-        if(!type.equals(file.getContentType()))
-            return false;
-        return true;
+    public boolean hasCSVformat(MultipartFile filePath) {
+        return false;
     }
 
     @Override
-    public void SaveData(MultipartFile file) {
-        try {
-            List<Employee> employees = csvToEmployee(file.getInputStream());
-            repository.saveAll(employees);
+    public boolean hasCSVformat(String filePath) {
+        return false;
+    }
+
+    @Override
+    public boolean hasCSVformat() {
+        String type = "text/csv";
+        try (BufferedReader fileReader = new BufferedReader(new FileReader(filePath))) {
+            // Read the first line to check if it's a CSV file
+            String firstLine = fileReader.readLine();
+            return firstLine != null && firstLine.startsWith("id,name,jobTitle,salary");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            return false;
         }
     }
 
-    private List<Employee> csvToEmployee(InputStream inputStream) {
-        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-             CSVParser csvparser = new CSVParser(fileReader,
-                     CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim())) {
-            List<Employee> employees= new ArrayList<>();
+    @Override
+    public Map<String, Double> getAverageSalaryByJobTitle() {
+        // Calculate the average salary for each job title
+        return getAllEmployees().stream()
+                .collect(Collectors.groupingBy(Employee::getJobTitle,
+                        Collectors.averagingDouble(employee -> employee.getSalary())));
+    }
+    @Override
+    public List<Employee> getAllEmployees() {
+        return repository.findAll();
+    }
+
+    @Override
+    public void SaveData(MultipartFile filePath) {
+
+    }
+
+
+    @Override
+    public void SaveData() {
+        List<Employee> employees = csvToEmployee();
+        repository.saveAll(employees);
+    }
+
+    public List<Employee> csvToEmployee() {
+        try {
+
+            BufferedReader fileReader = new BufferedReader(new FileReader("E:\\Projects\\SpringProjects\\DNAProject\\Full-Stack-Internship-Home-Assignment\\data\\employees.csv"));
+
+            CSVParser csvparser = new CSVParser(fileReader,
+                    CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());
+
+            List<Employee> employees = new ArrayList<>();
             List<CSVRecord> records = csvparser.getRecords();
+
             for (CSVRecord csvRecord : records) {
                 Employee employee = new Employee(
                         Long.parseLong(csvRecord.get("id")),
                         csvRecord.get("name"),
                         csvRecord.get("jobTitle"),
-                        csvRecord.get("salary"));
+                        Double.parseDouble(csvRecord.get("salary")));
                 employees.add(employee);
             }
+
             return employees;
         } catch (IOException e) {
             e.printStackTrace();
+            // Handle the exception by either throwing it or returning an empty list
+            throw new RuntimeException("Error reading CSV file", e);
         }
-        return null;
     }
 
 }
